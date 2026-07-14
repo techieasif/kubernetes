@@ -430,9 +430,19 @@ func (m *managerImpl) synchronize(ctx context.Context, diskInfoProvider DiskInfo
 		pod := activePods[i]
 		gracePeriodOverride := int64(immediateEvictionGracePeriodSeconds)
 		if !isHardEvictionThreshold(thresholdToReclaim) {
-			gracePeriodOverride = m.config.MaxPodGracePeriodSeconds
-			if pod.Spec.TerminationGracePeriodSeconds != nil {
-				gracePeriodOverride = min(m.config.MaxPodGracePeriodSeconds, *pod.Spec.TerminationGracePeriodSeconds)
+			if m.config.MaxPodGracePeriodSeconds < 0 {
+				// A negative value means "defer to the pod's terminationGracePeriodSeconds",
+				// falling back to the API default (30s) when the pod does not specify one.
+				// See https://github.com/kubernetes/kubernetes/issues/118172
+				gracePeriodOverride = v1.DefaultTerminationGracePeriodSeconds
+				if pod.Spec.TerminationGracePeriodSeconds != nil {
+					gracePeriodOverride = *pod.Spec.TerminationGracePeriodSeconds
+				}
+			} else {
+				gracePeriodOverride = m.config.MaxPodGracePeriodSeconds
+				if pod.Spec.TerminationGracePeriodSeconds != nil {
+					gracePeriodOverride = min(m.config.MaxPodGracePeriodSeconds, *pod.Spec.TerminationGracePeriodSeconds)
+				}
 			}
 		}
 
