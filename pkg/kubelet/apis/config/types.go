@@ -345,6 +345,7 @@ type KubeletConfiguration struct {
 	// Duration for which the kubelet has to wait before transitioning out of an eviction pressure condition.
 	EvictionPressureTransitionPeriod metav1.Duration
 	// Maximum allowed grace period (in seconds) to use when terminating pods in response to a soft eviction threshold being met.
+	// If negative, the pod's terminationGracePeriodSeconds is used uncapped.
 	EvictionMaxPodGracePeriod int32
 	// Map of signal names to quantities that defines minimum reclaims, which describe the minimum
 	// amount of a given resource the kubelet will reclaim when performing a pod eviction while
